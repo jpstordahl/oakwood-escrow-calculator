@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // PDF Generation
     document.getElementById('generatePdf').addEventListener('click', generatePDF);
 
-    async function generatePDF() {
+    function generatePDF() {
         const { jsPDF } = window.jspdf;
 
         // Gather form data
@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             agentCompany: document.getElementById('agentCompany').value,
             agentEmail: document.getElementById('agentEmail').value,
             agentPhone: document.getElementById('agentPhone').value,
+            agentDRE: document.getElementById('agentDRE').value,
             sellerFee: parseFloat(sellerFee.value) || 0,
             sellerDiscount: parseFloat(sellerDiscount.value) || 0,
             buyerFee: parseFloat(buyerFee.value) || 0,
@@ -111,13 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const lightBg = [248, 247, 244];
         const green = [46, 125, 50];
 
-        // --- Load logo ---
-        let logoImg = null;
-        try {
-            logoImg = await loadImage('logo.png');
-        } catch (e) {
-            console.warn('Could not load logo, proceeding without it.');
-        }
+        // --- Logo (embedded base64) ---
+        const logoImg = (typeof LOGO_BASE64 !== 'undefined') ? LOGO_BASE64 : null;
 
         let y = 40;
 
@@ -167,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.setFontSize(11);
             doc.setTextColor(...textGray);
             let intro = `Dear ${data.agentName}`;
+            if (data.agentDRE) intro += ` (DRE #${data.agentDRE})`;
             if (data.agentCompany) intro += ` of ${data.agentCompany}`;
             intro += ',';
             doc.text(intro, margin, y);
@@ -381,20 +378,4 @@ document.addEventListener('DOMContentLoaded', () => {
         return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    function loadImage(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                resolve(canvas.toDataURL('image/png'));
-            };
-            img.onerror = reject;
-            img.src = url;
-        });
-    }
 });
